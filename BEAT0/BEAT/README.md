@@ -1,6 +1,10 @@
 # BEAT0
 BEAT: Asynchronous BFT Made Practical
 
+- Please refer to the following paper for more details. 
+
+    - Duan, Sisi, Michael K. Reiter, and Haibin Zhang. "BEAT: Asynchronous bft made practical." Proceedings of the ACM SIGSAC Conference on Computer and Communications Security (CCS). 2018.
+
 
 ### Installation && How to run the code
 
