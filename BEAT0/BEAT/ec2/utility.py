@@ -2,18 +2,20 @@ import argparse
 import boto.ec2
 import sys, os
 import time
+
 if not boto.config.has_section('ec2'):
     boto.config.add_section('ec2')
     boto.config.setbool('ec2','use-sigv4',True)
 
 #These are the parameters for the AWS account
-keyname = 'Sisi_Ubuntu'
+your_key_path = ""
+your_key_name = ""
 instancetype = 't2.medium'
 
 
 #secgroups are associated with the AWS account, which could be found by entering each region 
 secgroups = {
-    'us-east-1':'sg-f5e6fa83',
+    'us-east-1':'sg-0ae1197027d767da2',
     'us-west-1':'sg-e192bd98',
     'us-west-2':'sg-9eca16e0',
     'eu-west-1':'sg-1bd2d661', #Ireland
@@ -108,11 +110,11 @@ def launch_new_instances(region, number):
     dev_sda1.delete_on_termination = True
     bdm = boto.ec2.blockdevicemapping.BlockDeviceMapping()
     bdm['/dev/sda1'] = dev_sda1
-    img = ec2_conn.get_all_images(filters={'name':'ubuntu/images/hvm-ssd/ubuntu-trusty-14.04-amd64-server-20180308'})[0].id
+    img = ec2_conn.get_all_images(filters={'name':'ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-20190406'})[0].id
     reservation = ec2_conn.run_instances(image_id=img, #'ami-df6a8b9b',  # ami-9f91a5f5
                                  min_count=number,
                                  max_count=number,
-                                 key_name=keyname, 
+                                 key_name=your_key_name, 
                                  instance_type=instancetype,
                                  security_group_ids = [secgroups[region], ],
                                  block_device_map = bdm)
@@ -169,15 +171,14 @@ import fcntl
 from threading import Thread
 import platform
 
-
 def callFabFromIPList(l, work):
     if platform.system() == 'Darwin':
-        print Popen(['fab', '-i', '~/.ssh/'+keyname+'.pem',
+        print Popen(['fab', '-i', your_key_path,
             '-u', 'ubuntu', '-H', ','.join(l), # We rule out the client
             work])
     else:
-        print 'fab -i ~/.ssh/'+keyname+'.pem -u ubuntu -P -H %s %s' % (','.join(l), work)
-        call('fab -i ~/.ssh/'+keyname+'.pem -u ubuntu -P -H %s %s' % (','.join(l), work), shell=True)
+        print 'fab -i %s -u ubuntu -P -H %s %s' % (your_key_path, ','.join(l), work)
+        call('fab -i %s -u ubuntu -P -H %s %s' % (your_key_path,','.join(l), work), shell=True)
 
 def non_block_read(output):
     ''' even in a thread, a normal read with block until the buffer is full '''
@@ -235,6 +236,9 @@ def gp():
 def rp(srp):
     c(getIP(), 'runProtocol:%s' % srp)
 
+def killAll():
+    c(getIP(), 'kill_All')
+
 if  __name__ =='__main__':
   try: __IPYTHON__
   except NameError:
@@ -247,4 +251,3 @@ if  __name__ =='__main__':
 
     import IPython
     IPython.embed()
-
