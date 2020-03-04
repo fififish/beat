@@ -20,12 +20,12 @@
             launch_new_instances([region],[N])
         Get the IPs
             ipAll()
-        Synchronize the keys from local machine to remote instances
-            c(getIP(),'syncKeys')
         Install the dependencies
             c(getIP(),'install_dependencies')
         Pull the code
             c(getIP(),'git_pull')
+        Synchronize the keys from local machine to remote instances
+            c(getIP(),'syncKeys')
         Run the protocol
             c(getIP(),'runProtocol:N,t,B')
 
