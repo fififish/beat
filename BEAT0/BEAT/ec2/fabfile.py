@@ -139,7 +139,7 @@ def fetchLogs():
 
 @parallel
 def syncKeys():
-    put('./*', '~/beat/BEAT0')
+    put('./*.keys', '~/beat/BEAT0')
     #with cd('~/beat/BEAT0'):
         #run('sudo rm -r *.keys')
 
