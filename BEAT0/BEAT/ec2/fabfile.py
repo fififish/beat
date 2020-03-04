@@ -7,6 +7,9 @@ import time, sys, os, scanf
 from io import BytesIO
 import math
 
+your_git_username = ""
+your_git_password = ""
+
 @parallel
 def host_type():
     run('uname -s')
@@ -64,7 +67,8 @@ def install_dependencies():
     sudo('apt-get update')
     sudo('apt-get -y install python-gevent')
     sudo('apt-get -y install git')
-    sudo('apt-get -y install python-socksipy')
+    #sudo('apt-get -y install python-socksipy')
+    sudo('apt-get -y install python-socks')
     sudo('apt-get -y install python-pip')
     sudo('apt-get -y install python-dev')
     sudo('apt-get -y install python-gmpy2')
@@ -85,6 +89,10 @@ def install_dependencies():
         run('./configure')
         run('make')
         sudo('make install')
+    sudo('pip install --upgrade setuptools')
+    sudo('sudo -H pip2 install --upgrade pip')
+    sudo('pip install hypothesis')
+    sudo('pip install pyparsing')
     with settings(warn_only=True):
         if run('test -d charm').failed:
             run('git clone https://github.com/JHUISI/charm.git')
@@ -92,6 +100,7 @@ def install_dependencies():
             run('git checkout 2.7-dev')
             run('./configure.sh')
             sudo('python setup.py install')
+    
 
 @parallel
 def prepare():
@@ -117,13 +126,22 @@ def writeHosts():
     put('./hosts', '~/')
 
 @parallel
+def kill_All():
+    run('lsof -t -i tcp:49500 | xargs kill -9')
+    #run('killall python')
+    #run('kill httpd')
+    #run('pgrep command | xargs kill')
+
+@parallel
 def fetchLogs():
     get('~/msglog.TorMultiple',
         'logs/%(host)s' + time.strftime('%Y-%m-%d_%H:%M:%SZ',time.gmtime()) + '.log')
 
 @parallel
 def syncKeys():
-    put('./*.keys', '~/BEAT/BEAT0')
+    put('./*', '~/beat/BEAT0')
+    #with cd('~/beat/BEAT0'):
+        #run('sudo rm -r *.keys')
 
 import SocketServer, time
 start_time = 0
@@ -176,16 +194,16 @@ def runProtocol(N_, t_, B_, timespan_, tx='tx'):
     timespan = int(timespan_)
     print N, t, B, timespan
     with shell_env(LIBRARY_PATH='/usr/local/lib', LD_LIBRARY_PATH='/usr/local/lib'):
-        with cd('~/BEAT/BEAT0'):
+        with cd('~/beat/BEAT0'):
             run('python -m BEAT.test.honest_party_test_EC2 -k'
             ' thsig%d_%d.keys -e ecdsa%d.keys -a %d -b %d -n %d -t %d -c thenc%d_%d.keys' % (N, t, t, timespan, B, N, t, N, t))
 
 @parallel
 def git_pull():
     with settings(warn_only=True):
-        if run('test -d BEAT').failed:
-            run('git clone https://sduan:PASSWORD@bitbucket.org/sduan/beat-bft.git')
-    with cd('~/BEAT/BEAT0/BEAT'):
+        if run('test -d beat').failed:
+            run('git clone https://%s:%s@github.com/fififish/beat.git'%(your_git_username, your_git_password))
+    with cd('~/beat/'):
         run('git reset --hard origin/master')
         run('git clean -fxd')
         run('git pull')
